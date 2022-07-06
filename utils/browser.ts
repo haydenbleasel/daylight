@@ -3,7 +3,6 @@ import puppeteer from 'puppeteer-core';
 import chrome from 'chrome-aws-lambda';
 
 export const createBrowser = async (): Promise<Browser> => {
-  console.log(process.env.AWS_EXECUTION_ENV, 'exec env');
   const browser = await puppeteer.launch(
     process.env.AWS_EXECUTION_ENV
       ? {
