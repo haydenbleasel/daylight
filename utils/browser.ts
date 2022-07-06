@@ -1,15 +1,15 @@
 import type { Browser } from 'puppeteer-core';
-import chromium from 'chrome-aws-lambda';
+import puppeteer from 'puppeteer-core';
+import chrome from 'chrome-aws-lambda';
 
 export const createBrowser = async (): Promise<Browser> => {
-  const browser = await chromium.puppeteer.launch(
+  console.log(process.env.AWS_EXECUTION_ENV, 'exec env');
+  const browser = await puppeteer.launch(
     process.env.AWS_EXECUTION_ENV
       ? {
-          args: chromium.args,
-          defaultViewport: chromium.defaultViewport,
-          executablePath: await chromium.executablePath,
-          headless: chromium.headless,
-          ignoreHTTPSErrors: true,
+          args: chrome.args,
+          executablePath: await chrome.executablePath,
+          headless: chrome.headless,
         }
       : {
           args: [],
