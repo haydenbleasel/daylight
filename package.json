@@ -3,12 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "yarn install && concurrently -n next,prismic \"next dev\" \"yarn:slicemachine\"",
+    "dev": "yarn clean && yarn install && concurrently -n next,prismic \"next dev\" \"yarn:slicemachine\"",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "postbuild": "next-sitemap",
     "slicemachine": "start-slicemachine",
+    "clean": "rm -fr ./public/screenshots",
     "upgrade": "npx npm-check-updates -u -x chrome-aws-lambda,puppeteer-core,react,react-dom,@types/react && yarn install"
   },
   "dependencies": {
@@ -32,6 +33,7 @@
     "jsdom": "^20.0.0",
     "kbar": "^0.1.0-beta.36",
     "lodash.groupby": "^4.6.0",
+    "mkdirp": "^1.0.4",
     "next": "12.2.0",
     "next-compose-plugins": "^2.2.1",
     "next-pwa": "^5.5.4",
@@ -61,6 +63,7 @@
     "@types/he": "^1.1.2",
     "@types/jsdom": "^16.2.14",
     "@types/lodash.groupby": "^4.6.7",
+    "@types/mkdirp": "^1.0.2",
     "@types/node": "18.0.1",
     "@types/react": "17.0.43",
     "@types/react-syntax-highlighter": "^15.5.2",

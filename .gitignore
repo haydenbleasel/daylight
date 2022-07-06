@@ -41,3 +41,4 @@ yarn-error.log*
 public/*.js
 public/sitemap*.xml
 public/*.txt
+public/screenshots

@@ -6,11 +6,11 @@ import type {
   ImageField,
   KeyTextField,
   PrismicDocumentWithUID,
-  SliceZone as SliceZoneProps,
+  RichTextField,
+  SliceZone,
 } from '@prismicio/types';
 import { format, parse, parseISO } from 'date-fns';
-import type { SliceZoneComponents } from '@prismicio/react';
-import { SliceZone } from '@prismicio/react';
+import { SliceZone as SliceZoneComponent } from '@prismicio/react';
 import Image from 'next/future/image';
 import { useRouter } from 'next/router';
 import { ArticleJsonLd } from 'next-seo';
@@ -32,6 +32,7 @@ import Layout from '../../components/layout';
 import { getPage, getPages } from '../../utils/prismic';
 import { components } from '../../slices';
 import Video from '../../components/video';
+import screenshots from '../../utils/screenshots';
 
 type PostProps = PrismicDocumentWithUID<{
   title: KeyTextField;
@@ -39,7 +40,7 @@ type PostProps = PrismicDocumentWithUID<{
   coverImage: ImageField;
   coverVideo: EmbedField;
   custom_publish_date: DateField;
-  slices1: SliceZoneProps;
+  slices1: SliceZone;
 }>;
 
 const WorkPost: FC<PostProps> = ({
@@ -104,10 +105,7 @@ const WorkPost: FC<PostProps> = ({
           </div>
         )}
         <div className="prose animate-enter opacity-0 animation-delay-300 dark:prose-invert">
-          <SliceZone
-            slices={data.slices1}
-            components={components as unknown as SliceZoneComponents}
-          />
+          <SliceZoneComponent slices={data.slices1} components={components} />
         </div>
       </div>
       <div className="bottom-0 left-0 right-0 flex animate-enter items-center justify-between gap-4 border-t border-gray-200 bg-white py-3 text-gray-500 opacity-0 animation-delay-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 sm:fixed sm:px-4">
@@ -174,6 +172,12 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   const posts = await getPage(uid, 'case-study');
 
   const post = posts as PrismicDocumentWithUID<PostProps['data']>;
+
+  await Promise.all(
+    post.data.slices1
+      .filter((slice) => slice.slice_type === 'rich_text')
+      .map(async (slice) => screenshots(slice.primary.content as RichTextField))
+  );
 
   return {
     props: post,

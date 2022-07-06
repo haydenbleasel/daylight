@@ -5,26 +5,28 @@ import type {
   ImageFieldImage,
   KeyTextField,
   PrismicDocumentWithUID,
+  RichTextField,
+  SliceZone,
 } from '@prismicio/types';
-import type { SliceZoneComponents, SliceZoneProps } from '@prismicio/react';
-import { SliceZone } from '@prismicio/react';
+import { SliceZone as SliceZoneComponent } from '@prismicio/react';
 import Image from 'next/future/image';
 import Layout from '../../components/layout';
 import { getPage, getPages } from '../../utils/prismic';
 import { components } from '../../slices';
 import Video from '../../components/video';
+import screenshots from '../../utils/screenshots';
 
-type LandingPageProps = {
+type ProjectProps = {
   data: {
     title: KeyTextField;
     description: KeyTextField;
     coverImage: ImageFieldImage;
     coverVideo: EmbedField;
-    slices1: SliceZoneProps['slices'];
+    slices1: SliceZone;
   };
 };
 
-const LandingPage: FC<LandingPageProps> = ({ data }) => (
+const Project: FC<ProjectProps> = ({ data }) => (
   <Layout title={data.title} description={data.description}>
     <div className="flex flex-col gap-8">
       <div className="flex animate-enter flex-col gap-1 opacity-0 animation-delay-100">
@@ -59,10 +61,7 @@ const LandingPage: FC<LandingPageProps> = ({ data }) => (
         </div>
       )}
       <div className="flex animate-enter flex-col gap-8 opacity-0 animation-delay-300">
-        <SliceZone
-          slices={data.slices1}
-          components={components as unknown as SliceZoneComponents}
-        />
+        <SliceZoneComponent slices={data.slices1} components={components} />
       </div>
     </div>
   </Layout>
@@ -72,7 +71,13 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   const { data, last_publication_date } = (await getPage(
     params?.uid as string,
     'project'
-  )) as PrismicDocumentWithUID;
+  )) as PrismicDocumentWithUID<ProjectProps['data']>;
+
+  await Promise.all(
+    data.slices1
+      .filter((slice) => slice.slice_type === 'rich_text')
+      .map(async (slice) => screenshots(slice.primary.content as RichTextField))
+  );
 
   return {
     props: {
@@ -97,4 +102,4 @@ export const getStaticPaths: GetStaticPaths = async () => {
   };
 };
 
-export default LandingPage;
+export default Project;

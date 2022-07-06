@@ -16,6 +16,7 @@ import { getPage, getPages } from '../utils/prismic';
 import Layout from '../components/layout';
 import { social } from '../utils/social';
 import SocialLinks from '../components/socialLinks';
+import screenshots from '../utils/screenshots';
 import type { WorkPostProps } from './work/[post]';
 import type { HomeProps } from '.';
 
@@ -192,9 +193,15 @@ const Resume: FC<ResumeProps> = ({ data, home, work }) => {
 };
 
 export const getStaticProps: GetStaticProps = async () => {
-  const { data } = (await getPage('resume')) as PrismicDocumentWithUID;
-  const { data: home } = (await getPage('home')) as PrismicDocumentWithUID;
+  const { data } = (await getPage('resume')) as PrismicDocumentWithUID<
+    ResumeProps['data']
+  >;
+  const { data: home } = (await getPage('home')) as PrismicDocumentWithUID<
+    ResumeProps['home']
+  >;
   const work = (await getPages('work-post')) as WorkPostProps[];
+
+  await screenshots(data.summary);
 
   return {
     props: {

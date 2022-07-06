@@ -7,15 +7,15 @@ import type {
   NumberField,
   PrismicDocumentWithUID,
   RichTextField,
-  SliceZone as SliceZoneProps,
+  SliceZone,
 } from '@prismicio/types';
-import type { SliceZoneComponents } from '@prismicio/react';
-import { SliceZone } from '@prismicio/react';
+import { SliceZone as SliceZoneComponent } from '@prismicio/react';
 import Image from 'next/future/image';
 import Layout from '../../components/layout';
 import { getPage, getPages } from '../../utils/prismic';
 import { components } from '../../slices';
 import Video from '../../components/video';
+import screenshots from '../../utils/screenshots';
 
 export type WorkPostProps = PrismicDocumentWithUID<{
   role: KeyTextField;
@@ -27,7 +27,7 @@ export type WorkPostProps = PrismicDocumentWithUID<{
   endYear: NumberField;
   location: KeyTextField;
   summary: RichTextField;
-  slices1: SliceZoneProps;
+  slices1: SliceZone;
 }>;
 
 const WorkPost: FC<WorkPostProps> = ({ data }) => (
@@ -71,10 +71,7 @@ const WorkPost: FC<WorkPostProps> = ({ data }) => (
         </div>
       )}
       <div className="prose animate-enter opacity-0 animation-delay-300 dark:prose-invert">
-        <SliceZone
-          slices={data.slices1}
-          components={components as unknown as SliceZoneComponents}
-        />
+        <SliceZoneComponent slices={data.slices1} components={components} />
       </div>
     </div>
   </Layout>
@@ -84,6 +81,12 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   const uid = params?.post as string;
   const posts = await getPage(uid, 'work-post');
   const post = posts as PrismicDocumentWithUID<WorkPostProps['data']>;
+
+  await Promise.all(
+    post.data.slices1
+      .filter((slice) => slice.slice_type === 'rich_text')
+      .map(async (slice) => screenshots(slice.primary.content as RichTextField))
+  );
 
   return {
     props: post,

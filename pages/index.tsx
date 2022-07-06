@@ -14,6 +14,7 @@ import Activity from '../components/activity';
 import Layout from '../components/layout';
 import SocialLinks from '../components/socialLinks';
 import { getPage } from '../utils/prismic';
+import screenshots from '../utils/screenshots';
 
 export type HomeProps = {
   data: {
@@ -85,7 +86,13 @@ const Home: FC<HomeProps> = ({ data }) => (
 );
 
 export const getStaticProps: GetStaticProps = async () => {
-  const { data } = (await getPage('home')) as PrismicDocumentWithUID;
+  const { data } = (await getPage('home')) as PrismicDocumentWithUID<
+    HomeProps['data']
+  >;
+
+  await Promise.all(
+    data.sections.map(async (section) => screenshots(section.content))
+  );
 
   return {
     props: {

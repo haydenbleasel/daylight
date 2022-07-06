@@ -13,6 +13,7 @@ import Image from 'next/future/image';
 import Layout from '../components/layout';
 import { getPage, getPages } from '../utils/prismic';
 import Video from '../components/video';
+import screenshots from '../utils/screenshots';
 
 type LandingPageProps = {
   data: {
@@ -71,7 +72,9 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   const { data, last_publication_date } = (await getPage(
     params?.uid as string,
     'landing-page'
-  )) as PrismicDocumentWithUID;
+  )) as PrismicDocumentWithUID<LandingPageProps['data']>;
+
+  await screenshots(data.content);
 
   return {
     props: {
