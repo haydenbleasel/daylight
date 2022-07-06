@@ -14,6 +14,9 @@ const screenshot = async (url: string): Promise<void> => {
   const { host } = new URL(url);
   const filename = path.join(screenshotsDirectory, `/${host}.png`);
 
+  // eslint-disable-next-line no-console
+  console.log(`Screenshotting ${url}...`);
+
   if (fs.existsSync(filename)) {
     return;
   }
