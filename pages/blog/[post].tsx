@@ -6,7 +6,6 @@ import type {
   ImageField,
   KeyTextField,
   PrismicDocumentWithUID,
-  RichTextField,
   SliceZone,
 } from '@prismicio/types';
 import { format, parse, parseISO } from 'date-fns';
@@ -32,7 +31,7 @@ import Layout from '../../components/layout';
 import { getPage, getPages } from '../../utils/prismic';
 import { components } from '../../slices';
 import Video from '../../components/video';
-import screenshots from '../../utils/screenshots';
+import hydrateSlices from '../../utils/hydrateSlices';
 
 type PostProps = PrismicDocumentWithUID<{
   title: KeyTextField;
@@ -170,14 +169,9 @@ const WorkPost: FC<PostProps> = ({
 export const getStaticProps: GetStaticProps = async ({ params }) => {
   const uid = params?.post as string;
   const posts = await getPage(uid, 'case-study');
-
   const post = posts as PrismicDocumentWithUID<PostProps['data']>;
 
-  await Promise.all(
-    post.data.slices1
-      .filter((slice) => slice.slice_type === 'rich_text')
-      .map(async (slice) => screenshots(slice.primary.content as RichTextField))
-  );
+  post.data.slices1 = await hydrateSlices(post.data.slices1);
 
   return {
     props: post,

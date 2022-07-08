@@ -108,7 +108,9 @@ const Projects: FC<ProjectsProps> = ({ data, projects }) => (
 );
 
 export const getStaticProps: GetStaticProps = async () => {
-  const { data } = (await getPage('projects')) as PrismicDocumentWithUID;
+  const { data } = (await getPage('projects')) as PrismicDocumentWithUID<
+    ProjectsProps['data']
+  >;
   const projects = await getPages('project');
 
   return {

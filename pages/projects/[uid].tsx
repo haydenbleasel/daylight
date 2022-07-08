@@ -5,7 +5,6 @@ import type {
   ImageFieldImage,
   KeyTextField,
   PrismicDocumentWithUID,
-  RichTextField,
   SliceZone,
 } from '@prismicio/types';
 import { SliceZone as SliceZoneComponent } from '@prismicio/react';
@@ -14,9 +13,7 @@ import Layout from '../../components/layout';
 import { getPage, getPages } from '../../utils/prismic';
 import { components } from '../../slices';
 import Video from '../../components/video';
-import screenshots from '../../utils/screenshots';
-import parseDribbbleShots from '../../utils/dribbble';
-import type { DribbbleSliderProps } from '../../slices/DribbbleSlider';
+import hydrateSlices from '../../utils/hydrateSlices';
 
 type ProjectProps = {
   data: {
@@ -75,33 +72,11 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     'project'
   )) as PrismicDocumentWithUID<ProjectProps['data']>;
 
-  await Promise.all(
-    data.slices1
-      .filter((slice) => slice.slice_type === 'rich_text')
-      .map(async (slice) => screenshots(slice.primary.content as RichTextField))
-  );
-
-  const hydratedSlices = await Promise.all(
-    data.slices1.map(async (slice) => {
-      if (slice.slice_type !== 'dribbble_slider') {
-        return slice;
-      }
-      const newSlice = { ...slice };
-
-      newSlice.items = await parseDribbbleShots(
-        slice.items as DribbbleSliderProps['items']
-      );
-
-      return newSlice;
-    })
-  );
+  data.slices1 = await hydrateSlices(data.slices1);
 
   return {
     props: {
-      data: {
-        ...data,
-        slices1: hydratedSlices,
-      },
+      data,
       last_publication_date,
     },
   };
