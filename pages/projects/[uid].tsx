@@ -15,6 +15,8 @@ import { getPage, getPages } from '../../utils/prismic';
 import { components } from '../../slices';
 import Video from '../../components/video';
 import screenshots from '../../utils/screenshots';
+import parseDribbbleShots from '../../utils/dribbble';
+import type { DribbbleSliderProps } from '../../slices/DribbbleSlider';
 
 type ProjectProps = {
   data: {
@@ -79,9 +81,27 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
       .map(async (slice) => screenshots(slice.primary.content as RichTextField))
   );
 
+  const hydratedSlices = await Promise.all(
+    data.slices1.map(async (slice) => {
+      if (slice.slice_type !== 'dribbble_slider') {
+        return slice;
+      }
+      const newSlice = { ...slice };
+
+      newSlice.items = await parseDribbbleShots(
+        slice.items as DribbbleSliderProps['items']
+      );
+
+      return newSlice;
+    })
+  );
+
   return {
     props: {
-      data,
+      data: {
+        ...data,
+        slices1: hydratedSlices,
+      },
       last_publication_date,
     },
   };

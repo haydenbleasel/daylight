@@ -1,5 +1,4 @@
 import type { FC } from 'react';
-import React, { useState, useEffect } from 'react';
 import type { SliceComponentProps } from '@prismicio/react';
 import {
   ArrowLeft,
@@ -10,10 +9,20 @@ import {
 } from 'react-feather';
 import useEmblaCarousel from 'embla-carousel-react';
 import Link from 'next/link';
-import toast from 'react-hot-toast';
 import Image from 'next/future/image';
-import type { DribbbleResponse } from '../../pages/api/dribbble';
 import Placeholder from '../../components/placeholder';
+
+export type DribbbleSliderProps = {
+  slice_type: 'dribbble_slider';
+  items: {
+    shot: number;
+    title?: string;
+    image?: string;
+    comments?: number;
+    likes?: number;
+    views?: number;
+  }[];
+};
 
 const formatNumbers = (num: number) => {
   if (num < 1000) {
@@ -25,102 +34,67 @@ const formatNumbers = (num: number) => {
   return `${(num / 1000000).toFixed(1)}m`;
 };
 
-const loadShotData = async (shot: number) => {
-  const response = await fetch('/api/dribbble', {
-    method: 'POST',
-    body: JSON.stringify({
-      shot,
-    }),
-  });
-
-  const { error, data: newData } = (await response.json()) as DribbbleResponse;
-
-  if (error) {
-    throw new Error(error);
-  }
-
-  if (!newData) {
-    throw new Error('Something went wrong');
-  }
-
-  return newData;
-};
-
-const Shot: FC<{ shot: number }> = ({ shot }) => {
-  const [data, setData] = useState<DribbbleResponse['data']>();
-  const url = `https://dribbble.com/shots/${shot}`;
-
-  useEffect(() => {
-    loadShotData(shot)
-      .then(setData)
-      .catch((error) => {
-        const message =
-          error instanceof Error ? error.message : (error as string);
-        toast.error(message);
-      });
-  }, [shot]);
-
-  return (
-    <Link
-      key={shot}
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group relative flex w-full max-w-[400px] flex-shrink-0 flex-grow-0 flex-col"
-    >
-      <div className="flex flex-col overflow-hidden rounded-md bg-white shadow-md transition-all group-hover:shadow-lg dark:bg-gray-800">
-        <div className="relative aspect-[4/3] w-full">
-          <Placeholder className="absolute z-0 h-full w-full" />
-
-          {data && (
-            <Image
-              src={data.image}
-              width={400}
-              height={300}
-              quality={100}
-              alt=""
-              className="relative z-10 m-0"
-            />
-          )}
-        </div>
-        <div className="flex flex-col gap-1 border-t border-gray-100 p-4 dark:border-gray-700">
-          <p className="m-0 text-lg font-semibold text-gray-900 line-clamp-1 dark:text-white">
-            {data?.title ?? 'Loading'}
-          </p>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <MessageSquare size={16} className="text-gray-400" />
-              <p className="m-0 text-md text-gray-500 dark:text-gray-400">
-                {formatNumbers(data?.comments ?? 0)}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <ThumbsUp size={16} className="text-gray-400" />
-              <p className="m-0 text-md text-gray-500 dark:text-gray-400">
-                {formatNumbers(data?.likes ?? 0)}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Eye size={16} className="text-gray-400" />
-              <p className="m-0 text-md text-gray-500 dark:text-gray-400">
-                {formatNumbers(data?.views ?? 0)}
-              </p>
-            </div>
+const Shot: FC<DribbbleSliderProps['items'][number]> = ({
+  shot,
+  comments,
+  image,
+  likes,
+  title,
+  views,
+}) => (
+  <Link
+    key={shot}
+    href={`https://dribbble.com/shots/${shot}`}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="group relative flex w-full max-w-[400px] flex-shrink-0 flex-grow-0 flex-col"
+  >
+    <div className="flex flex-col overflow-hidden rounded-md bg-white shadow-md transition-all group-hover:shadow-lg dark:bg-gray-800">
+      <div className="relative aspect-[4/3] w-full">
+        <Placeholder className="absolute z-0 h-full w-full" />
+        {image && (
+          <Image
+            src={image}
+            width={400}
+            height={300}
+            quality={100}
+            alt=""
+            className="relative z-10 m-0"
+          />
+        )}
+      </div>
+      <div className="flex flex-col gap-1 border-t border-gray-100 p-4 dark:border-gray-700">
+        <p className="m-0 text-lg font-semibold text-gray-900 line-clamp-1 dark:text-white">
+          {title ?? 'Loading'}
+        </p>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <MessageSquare size={16} className="text-gray-400" />
+            <p className="m-0 text-md text-gray-500 dark:text-gray-400">
+              {formatNumbers(comments ?? 0)}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <ThumbsUp size={16} className="text-gray-400" />
+            <p className="m-0 text-md text-gray-500 dark:text-gray-400">
+              {formatNumbers(likes ?? 0)}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Eye size={16} className="text-gray-400" />
+            <p className="m-0 text-md text-gray-500 dark:text-gray-400">
+              {formatNumbers(views ?? 0)}
+            </p>
           </div>
         </div>
       </div>
-    </Link>
-  );
-};
+    </div>
+  </Link>
+);
 
-const DribbbleSlider: FC<
-  SliceComponentProps<{
-    slice_type: 'dribbble-slider';
-    items: {
-      shot: number;
-    }[];
-  }>
-> = ({ slice }) => {
+const DribbbleSlider: FC<SliceComponentProps<DribbbleSliderProps>> = ({
+  slice,
+}) => {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     startIndex: 0,
     loop: false,
