@@ -23,6 +23,9 @@ const screenshot = async (url: string): Promise<void> => {
 
   const browser = await createBrowser();
   const page = await browser.newPage();
+
+  page.setDefaultNavigationTimeout(0);
+
   await page.setViewport({ width: 1200, height: 750 });
   await page.goto(url, { waitUntil: 'networkidle0' });
   const image = (await page.screenshot({
