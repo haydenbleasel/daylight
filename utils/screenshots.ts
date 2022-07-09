@@ -3,12 +3,16 @@ import path from 'path';
 import fs from 'fs';
 import mkdirp from 'mkdirp';
 import type { RichTextField } from '@prismicio/types';
-import { createBrowser } from './browser';
 
 const root = path.resolve(process.cwd());
 const screenshotsDirectory = path.join(root, '/public/screenshots');
 
 mkdirp.sync(screenshotsDirectory);
+
+type GlimpseResponse = {
+  error?: string;
+  image?: string;
+};
 
 const screenshot = async (url: string): Promise<void> => {
   const { host } = new URL(url);
@@ -21,21 +25,28 @@ const screenshot = async (url: string): Promise<void> => {
     return;
   }
 
-  const browser = await createBrowser();
-  const page = await browser.newPage();
+  const response = await fetch(
+    'https://glimpse.haydenbleasel.com/api/screenshot',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ url }),
+    }
+  );
 
-  page.setDefaultNavigationTimeout(0);
+  const { image, error } = (await response.json()) as GlimpseResponse;
 
-  await page.setViewport({ width: 1200, height: 750 });
-  await page.goto(url, { waitUntil: 'networkidle2' });
-  const image = (await page.screenshot({
-    type: 'png',
-    encoding: 'binary',
-  })) as string;
+  if (error) {
+    throw new Error(error);
+  }
 
-  fs.writeFileSync(filename, image, 'binary');
+  if (!image) {
+    throw new Error('No image found');
+  }
 
-  await browser.close();
+  fs.writeFileSync(filename, image, 'base64');
 };
 
 const screenshots = async (data: RichTextField): Promise<void> => {
